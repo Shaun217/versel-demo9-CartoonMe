@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎨 CartoonMe 卡通变身镜</title>
+    <title>🎨 CartoonMe 卡通变身镜 (Pro)</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 </head>
@@ -11,8 +11,8 @@
 
 <div class="container">
     <header>
-        <h1>🎨 CartoonMe</h1>
-        <p>把照片变成高保真卡通画</p>
+        <h1>🎨 CartoonMe Pro</h1>
+        <p>更精准的风格迁移变身</p>
     </header>
 
     <div class="settings-box dropdown closed">
@@ -21,8 +21,7 @@
             <span class="material-icons-round arrow">expand_more</span>
         </div>
         <div class="dropdown-content">
-            <input type="password" id="apiKey" placeholder="粘贴 Google AI Studio Key (用于精准识别细节)">
-            <p class="note">💡 Key 仅保存在浏览器本地，用于让 AI 看清照片细节。</p>
+            <input type="password" id="apiKey" placeholder="粘贴 Google AI Studio Key">
         </div>
     </div>
 
@@ -33,39 +32,46 @@
                 <img id="originalPreview" src="" class="hidden">
                 <div id="uploadPlaceholder">
                     <span class="material-icons-round icon-large">add_a_photo</span>
-                    <p>拍照或上传照片</p>
+                    <p>上传照片</p>
                 </div>
             </div>
             <input type="file" id="fileInput" accept="image/*" onchange="handleFile(event)">
 
             <div class="style-selector">
-                <label>🎨 选择卡通风格：</label>
+                <label>🎨 强力风格选择器：</label>
                 <select id="styleSelect">
-                    <option value="Pixar 3D animation style, highly detailed, cinematic lighting">皮克斯 3D 风格</option>
-                    <option value="Studio Ghibli anime style, hand drawn texture, watercolor">宫崎骏手绘风格</option>
-                    <option value="Disney classic 2D animation style">迪士尼 2D 经典风格</option>
-                    <option value="American comic book style, bold lines, vibrant colors">美漫风格</option>
-                    <option value="Cute chibi cartoon style">Q版大头风格</option>
+                    <option value="Pixar style 3D render, Disney animation style, cute, 3d art, c4d, unreal engine 5, octane render, blind box style">迪士尼/皮克斯 3D风</option>
+                    
+                    <option value="Studio Ghibli style, Miyazaki Hayao style, anime style, flat color, cel shading, detailed background, watercolor texture">宫崎骏/日漫手绘风</option>
+                    
+                    <option value="American comic book style, Marvel comics style, bold black outlines, halftone dots, vibrant flat colors, pop art">美漫/波普艺术风</option>
+                    
+                    <option value="Claymation style, Aardman animation style, stop motion, plasticine material, soft clay texture, miniature photography">粘土定格动画风</option>
+                    
+                    <option value="Cyberpunk anime style, neon lights, futuristic, synthwave, glowing effects, detailed mechanical parts">赛博朋克科幻风</option>
                 </select>
             </div>
 
-            <button id="generateBtn" onclick="startConversion()">🚀 开始变身！</button>
+            <button id="generateBtn" onclick="startConversion()">🚀 强力变身！</button>
         </section>
 
         <section class="panel right-panel">
-            <h2>✨ 卡通效果</h2>
+            <h2>✨ 变身结果</h2>
             <div class="image-wrapper result-wrapper">
                 <div id="loadingState" class="hidden">
                     <div class="spinner"></div>
-                    <p id="loadingText">正在分析照片细节...</p>
+                    <p id="loadingText">正在分析...</p>
                 </div>
                 <img id="cartoonResult" src="" class="hidden">
                 <div id="resultPlaceholder">
-                    <span class="material-icons-round icon-large" style="color: #ddd;">auto_awesome</span>
-                    <p style="color: #999;">变身后的图片将在这里显示</p>
+                    <p style="color: #999;">等待施法...</p>
                 </div>
             </div>
-            <button id="downloadBtn" class="hidden" onclick="downloadImage()">⬇️ 保存卡通图</button>
+            <div class="prompt-debug">
+                <small>实际执行咒语：</small>
+                <p id="debugPrompt" style="font-size: 0.8rem; color: #666; height: 40px; overflow-y: scroll;">...</p>
+            </div>
+            <button id="downloadBtn" class="hidden" onclick="downloadImage()">⬇️ 保存图片</button>
         </section>
     </main>
 </div>
