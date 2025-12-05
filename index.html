@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎨 CartoonMe 卡通变身镜</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>🎨 CartoonMe</h1>
+        <p>把照片变成高保真卡通画</p>
+    </header>
+
+    <div class="settings-box dropdown closed">
+        <div class="dropdown-header" onclick="toggleSettings()">
+            <span>🔑 API Key 设置 (Gemini)</span>
+            <span class="material-icons-round arrow">expand_more</span>
+        </div>
+        <div class="dropdown-content">
+            <input type="password" id="apiKey" placeholder="粘贴 Google AI Studio Key (用于精准识别细节)">
+            <p class="note">💡 Key 仅保存在浏览器本地，用于让 AI 看清照片细节。</p>
+        </div>
+    </div>
+
+    <main class="main-layout">
+        <section class="panel left-panel">
+            <h2>📸 原图</h2>
+            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <img id="originalPreview" src="" class="hidden">
+                <div id="uploadPlaceholder">
+                    <span class="material-icons-round icon-large">add_a_photo</span>
+                    <p>拍照或上传照片</p>
+                </div>
+            </div>
+            <input type="file" id="fileInput" accept="image/*" onchange="handleFile(event)">
+
+            <div class="style-selector">
+                <label>🎨 选择卡通风格：</label>
+                <select id="styleSelect">
+                    <option value="Pixar 3D animation style, highly detailed, cinematic lighting">皮克斯 3D 风格</option>
+                    <option value="Studio Ghibli anime style, hand drawn texture, watercolor">宫崎骏手绘风格</option>
+                    <option value="Disney classic 2D animation style">迪士尼 2D 经典风格</option>
+                    <option value="American comic book style, bold lines, vibrant colors">美漫风格</option>
+                    <option value="Cute chibi cartoon style">Q版大头风格</option>
+                </select>
+            </div>
+
+            <button id="generateBtn" onclick="startConversion()">🚀 开始变身！</button>
+        </section>
+
+        <section class="panel right-panel">
+            <h2>✨ 卡通效果</h2>
+            <div class="image-wrapper result-wrapper">
+                <div id="loadingState" class="hidden">
+                    <div class="spinner"></div>
+                    <p id="loadingText">正在分析照片细节...</p>
+                </div>
+                <img id="cartoonResult" src="" class="hidden">
+                <div id="resultPlaceholder">
+                    <span class="material-icons-round icon-large" style="color: #ddd;">auto_awesome</span>
+                    <p style="color: #999;">变身后的图片将在这里显示</p>
+                </div>
+            </div>
+            <button id="downloadBtn" class="hidden" onclick="downloadImage()">⬇️ 保存卡通图</button>
+        </section>
+    </main>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
