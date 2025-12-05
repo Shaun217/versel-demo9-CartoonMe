@@ -8,7 +8,9 @@ function toggleSettings() {
 function handleFile(event) {
     const file = event.target.files[0];
     if (file) {
-        if (file.size > 5 * 1024 * 1024) alert("图片较大，建议压缩");
+        // 这里的限制稍微放宽一点
+        if (file.size > 8 * 1024 * 1024) alert("图片较大，AI 分析可能需要一点时间~");
+        
         const reader = new FileReader();
         reader.onload = function(e) {
             const raw = e.target.result;
@@ -37,13 +39,13 @@ async function getModelName(apiKey) {
 async function startConversion() {
     const apiKey = document.getElementById('apiKey').value.trim();
     const stylePrompt = document.getElementById('styleSelect').value;
-    const selectedModel = document.getElementById('modelSelect').value; // 获取选择的模型 (flux/turbo)
+    const selectedModel = document.getElementById('modelSelect').value;
     
     if (!apiKey) {
         toggleSettings();
-        return alert("请填入 API Key");
+        return alert("请填入 Google API Key");
     }
-    if (!base64Image) return alert("请上传图片");
+    if (!base64Image) return alert("请先上传照片");
 
     const genBtn = document.getElementById('generateBtn');
     const dlBtn = document.getElementById('downloadBtn');
@@ -52,24 +54,26 @@ async function startConversion() {
     const resultImg = document.getElementById('cartoonResult');
     const debugText = document.getElementById('debugPrompt');
 
+    // UI 锁定
     genBtn.disabled = true;
+    genBtn.innerText = "⏳ 魔法施展中...";
     dlBtn.classList.add('hidden');
     resultImg.classList.add('hidden');
     loadingState.classList.remove('hidden');
 
     try {
-        // --- STEP 1: Gemini 描述内容 ---
-        loadingText.innerText = "🔍 提取特征...";
+        // --- STEP 1: Gemini 视觉分析 ---
+        loadingText.innerText = "🔍 正在分析图片细节...";
         const modelName = await getModelName(apiKey);
         
         const systemPrompt = `
-        Task: Describe the main subject and action in the image concisely.
+        Task: Describe the visual content of this image concisely for an AI artist.
         
         Rules:
-        1. Start directly with the subject (e.g., "A cute cat sitting on a rug").
-        2. Describe colors and key features clearly.
-        3. DO NOT use words like "photo", "realistic", "camera", "image". 
-        4. Focus only on visual content.
+        1. Start with the main subject (e.g., "A golden retriever sitting on grass").
+        2. Describe colors, lighting, and key features clearly.
+        3. DO NOT use words like "photo", "realistic", "camera", "realism". 
+        4. Output only the description text.
         `;
 
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
@@ -86,41 +90,54 @@ async function startConversion() {
         });
 
         const data = await res.json();
-        if (!data.candidates) throw new Error("Gemini 识别失败");
+        if (!data.candidates) throw new Error("Gemini 无法连接，请检查 Key 或网络");
         const contentDescription = data.candidates[0].content.parts[0].text.trim();
 
         // --- STEP 2: 构造强力咒语 ---
-        const finalPrompt = `${stylePrompt}, ${contentDescription}, masterpiece, high quality`;
-        
-        debugText.innerText = `[Model: ${selectedModel}] ${finalPrompt}`;
+        // 结构：风格 + 内容 + 高质量词缀
+        const finalPrompt = `${stylePrompt}, ${contentDescription}, masterpiece, high quality, 8k`;
+        debugText.innerText = `[${selectedModel.toUpperCase()}] ${finalPrompt}`;
 
-        // --- STEP 3: Pollinations 绘图 (带负面提示词) ---
-        loadingText.innerText = "🎨 正在重绘...";
+        // --- STEP 3: Pollinations 绘图 (带超时优化) ---
+        loadingText.innerText = selectedModel === 'flux' ? 
+            "🎨 正在精细绘制 (Flux较慢，请耐心等待)..." : 
+            "⚡ 正在极速生成 (Turbo)...";
         
         const randomSeed = Math.floor(Math.random() * 99999);
+        const negativePrompt = "photo, realistic, photography, camera, text, watermark, bad anatomy, blurry, distorted";
         
-        // 关键点：添加 negative 参数，禁止生成照片风格
-        // 关键点：根据用户选择切换 model (flux 或 turbo)
-        const negativePrompt = "photo, realistic, realism, photography, camera, blurry, distorted";
-        
+        // 构造 URL
         const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPrompt)}?width=1024&height=1024&seed=${randomSeed}&model=${selectedModel}&negative=${encodeURIComponent(negativePrompt)}&nolog=true`;
 
+        // 图片预加载
         const tempImg = new Image();
         tempImg.src = imageUrl;
         
-        const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("超时")), 40000));
-        await Promise.race([new Promise(resolve => tempImg.onload = resolve), timeout]);
+        // 🔥 关键修改：将超时时间从 40s 延长到 90s (1分半) 🔥
+        // Flux 模型有时需要排队，90s 比较保险
+        const timeout = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error("服务器繁忙，生成超时。请尝试切换 Turbo 模型，或稍后再试。")), 90000)
+        );
 
+        await Promise.race([
+            new Promise(resolve => tempImg.onload = resolve),
+            timeout
+        ]);
+
+        // 显示结果
         resultImg.src = imageUrl;
         resultImg.classList.remove('hidden');
         loadingState.classList.add('hidden');
         dlBtn.classList.remove('hidden');
-        genBtn.disabled = false;
-
+        
     } catch (error) {
+        console.error(error);
         alert("出错了: " + error.message);
-        genBtn.disabled = false;
         loadingState.classList.add('hidden');
+    } finally {
+        // 无论成功失败，恢复按钮状态
+        genBtn.disabled = false;
+        genBtn.innerText = "🚀 强力变身！";
     }
 }
 
