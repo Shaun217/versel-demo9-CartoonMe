@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎨 CartoonMe 卡通变身镜 (Pro)</title>
+    <title>🎨 CartoonMe Pro Max</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 </head>
@@ -11,8 +11,8 @@
 
 <div class="container">
     <header>
-        <h1>🎨 CartoonMe Pro</h1>
-        <p>更精准的风格迁移变身</p>
+        <h1>🎨 CartoonMe <span style="font-size:0.6em; color:#aaa">Pro Max</span></h1>
+        <p>彻底打破写实壁垒</p>
     </header>
 
     <div class="settings-box dropdown closed">
@@ -38,17 +38,21 @@
             <input type="file" id="fileInput" accept="image/*" onchange="handleFile(event)">
 
             <div class="style-selector">
-                <label>🎨 强力风格选择器：</label>
+                <label>⚙️ 绘画引擎（关键）：</label>
+                <select id="modelSelect">
+                    <option value="turbo">⚡ Turbo (SDXL) - 风格化强，卡通效果最好</option>
+                    <option value="flux">🌟 Flux (Realism) - 细节最好，但偏写实</option>
+                </select>
+            </div>
+
+            <div class="style-selector">
+                <label>🎨 目标风格：</label>
                 <select id="styleSelect">
-                    <option value="Pixar style 3D render, Disney animation style, cute, 3d art, c4d, unreal engine 5, octane render, blind box style">迪士尼/皮克斯 3D风</option>
-                    
-                    <option value="Studio Ghibli style, Miyazaki Hayao style, anime style, flat color, cel shading, detailed background, watercolor texture">宫崎骏/日漫手绘风</option>
-                    
-                    <option value="American comic book style, Marvel comics style, bold black outlines, halftone dots, vibrant flat colors, pop art">美漫/波普艺术风</option>
-                    
-                    <option value="Claymation style, Aardman animation style, stop motion, plasticine material, soft clay texture, miniature photography">粘土定格动画风</option>
-                    
-                    <option value="Cyberpunk anime style, neon lights, futuristic, synthwave, glowing effects, detailed mechanical parts">赛博朋克科幻风</option>
+                    <option value="Pixar 3D style, Disney character, c4d render, unreal engine, cute">皮克斯 3D 动画</option>
+                    <option value="Japanese anime style, Studio Ghibli, flat color, cel shading">宫崎骏/日漫</option>
+                    <option value="Vector illustration, flat design, minimal, bold colors">扁平矢量插画</option>
+                    <option value="Oil painting style, thick brushstrokes, artistic">油画艺术风</option>
+                    <option value="American comic style, thick outlines, pop art">美漫风格</option>
                 </select>
             </div>
 
@@ -56,7 +60,7 @@
         </section>
 
         <section class="panel right-panel">
-            <h2>✨ 变身结果</h2>
+            <h2>✨ 结果</h2>
             <div class="image-wrapper result-wrapper">
                 <div id="loadingState" class="hidden">
                     <div class="spinner"></div>
@@ -68,7 +72,7 @@
                 </div>
             </div>
             <div class="prompt-debug">
-                <small>实际执行咒语：</small>
+                <small>Debug 咒语：</small>
                 <p id="debugPrompt" style="font-size: 0.8rem; color: #666; height: 40px; overflow-y: scroll;">...</p>
             </div>
             <button id="downloadBtn" class="hidden" onclick="downloadImage()">⬇️ 保存图片</button>

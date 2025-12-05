@@ -8,7 +8,7 @@ function toggleSettings() {
 function handleFile(event) {
     const file = event.target.files[0];
     if (file) {
-        if (file.size > 5 * 1024 * 1024) alert("图片较大，请耐心等待~");
+        if (file.size > 5 * 1024 * 1024) alert("图片较大，建议压缩");
         const reader = new FileReader();
         reader.onload = function(e) {
             const raw = e.target.result;
@@ -36,8 +36,8 @@ async function getModelName(apiKey) {
 
 async function startConversion() {
     const apiKey = document.getElementById('apiKey').value.trim();
-    // 获取用户选择的“强力风格咒语”
     const stylePrompt = document.getElementById('styleSelect').value;
+    const selectedModel = document.getElementById('modelSelect').value; // 获取选择的模型 (flux/turbo)
     
     if (!apiKey) {
         toggleSettings();
@@ -58,19 +58,18 @@ async function startConversion() {
     loadingState.classList.remove('hidden');
 
     try {
-        // --- STEP 1: 让 Gemini 只提取内容，不要描述风格 ---
-        loadingText.innerText = "🔍 提取画面主体特征...";
+        // --- STEP 1: Gemini 描述内容 ---
+        loadingText.innerText = "🔍 提取特征...";
         const modelName = await getModelName(apiKey);
         
         const systemPrompt = `
-        Task: Analyze the image and provide a concise visual description of the MAIN SUBJECT and BACKGROUND only.
+        Task: Describe the main subject and action in the image concisely.
         
-        Strict Guidelines:
-        1. Describe WHAT is in the image (e.g., "a young man wearing a red hoodie holding a coffee cup").
-        2. Describe the pose, expression, and key colors accurately.
-        3. DO NOT describe the image style (do NOT say "this is a photo", "realistic", "camera shot"). 
-        4. Focus on visual elements that need to be drawn.
-        5. Output raw text only.
+        Rules:
+        1. Start directly with the subject (e.g., "A cute cat sitting on a rug").
+        2. Describe colors and key features clearly.
+        3. DO NOT use words like "photo", "realistic", "camera", "image". 
+        4. Focus only on visual content.
         `;
 
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
@@ -88,23 +87,23 @@ async function startConversion() {
 
         const data = await res.json();
         if (!data.candidates) throw new Error("Gemini 识别失败");
-        
-        // Gemini 提取出的纯内容描述 (例如：A cat sitting on table)
         const contentDescription = data.candidates[0].content.parts[0].text.trim();
 
-        // --- STEP 2: 拼接“三明治”咒语 ---
-        // 结构：[强力风格] + [内容描述] + [画质增强]
-        const finalPrompt = `(${stylePrompt}), ${contentDescription}, masterpiece, best quality, 8k resolution`;
+        // --- STEP 2: 构造强力咒语 ---
+        const finalPrompt = `${stylePrompt}, ${contentDescription}, masterpiece, high quality`;
         
-        console.log("最终咒语:", finalPrompt);
-        debugText.innerText = finalPrompt;
+        debugText.innerText = `[Model: ${selectedModel}] ${finalPrompt}`;
 
-        // --- STEP 3: Pollinations 绘图 ---
-        loadingText.innerText = "🎨 正在重绘风格...";
+        // --- STEP 3: Pollinations 绘图 (带负面提示词) ---
+        loadingText.innerText = "🎨 正在重绘...";
         
         const randomSeed = Math.floor(Math.random() * 99999);
-        // 使用 flux 模型 (目前对自然语言理解最好)
-        const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPrompt)}?width=1024&height=1024&seed=${randomSeed}&model=flux&nolog=true`;
+        
+        // 关键点：添加 negative 参数，禁止生成照片风格
+        // 关键点：根据用户选择切换 model (flux 或 turbo)
+        const negativePrompt = "photo, realistic, realism, photography, camera, blurry, distorted";
+        
+        const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPrompt)}?width=1024&height=1024&seed=${randomSeed}&model=${selectedModel}&negative=${encodeURIComponent(negativePrompt)}&nolog=true`;
 
         const tempImg = new Image();
         tempImg.src = imageUrl;
